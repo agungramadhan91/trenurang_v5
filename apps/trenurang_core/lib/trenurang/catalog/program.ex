@@ -25,5 +25,7 @@ defmodule Trenurang.Catalog.Program do
     program
     |> cast(attrs, [:actor_id, :category_id, :title, :description, :starts_at, :ends_at, :capacity])
     |> validate_required([:actor_id, :category_id, :title])
+    |> foreign_key_constraint(:actor_id, message: "actor tidak ditemukan")
+    |> foreign_key_constraint(:category_id, message: "category tidak ditemukan")
   end
 end

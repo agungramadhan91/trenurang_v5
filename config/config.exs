@@ -20,5 +20,7 @@ config :trenurang_core, Trenurang.Repo,
   types: Trenurang.PostgresTypes
 
 if config_env() == :test do
-  config :trenurang_core, Trenurang.Repo, pool: Ecto.Adapters.SQL.Sandbox
+  config :trenurang_core, Trenurang.Repo,
+    pool: Ecto.Adapters.SQL.Sandbox,
+    log: false
 end

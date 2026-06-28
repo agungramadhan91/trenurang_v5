@@ -26,5 +26,6 @@ defmodule Trenurang.Catalog.Profile do
     profile
     |> cast(attrs, [:actor_id, :display_name, :skills, :description])
     |> validate_required([:actor_id])
+    |> foreign_key_constraint(:actor_id, message: "actor tidak ditemukan")
   end
 end
