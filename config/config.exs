@@ -16,4 +16,5 @@ config :trenurang_core, Trenurang.Repo,
   password: System.get_env("DB_PASSWORD", "postgres"),
   hostname: System.get_env("DB_HOSTNAME", "localhost"),
   database: System.get_env("DB_NAME", "trenurang_dev"),
-  pool_size: 10
+  pool_size: 10,
+  types: Trenurang.PostgresTypes
