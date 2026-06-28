@@ -18,3 +18,7 @@ config :trenurang_core, Trenurang.Repo,
   database: System.get_env("DB_NAME", "trenurang_dev"),
   pool_size: 10,
   types: Trenurang.PostgresTypes
+
+if config_env() == :test do
+  config :trenurang_core, Trenurang.Repo, pool: Ecto.Adapters.SQL.Sandbox
+end
