@@ -21,9 +21,9 @@ defmodule Trenurang.Accounts.Actor do
     field :display_name, :string
 
     belongs_to :user, Trenurang.Accounts.User
-    has_one :persona, Trenurang.Catalog.Persona
-    has_many :produks, Trenurang.Catalog.Produk
-    has_many :agenda_programs, Trenurang.Catalog.AgendaProgram
+    has_one :profile, Trenurang.Catalog.Profile
+    has_many :products, Trenurang.Catalog.Product
+    has_many :programs, Trenurang.Catalog.Program
     has_many :intents, Trenurang.Matching.Intent
 
     timestamps()
