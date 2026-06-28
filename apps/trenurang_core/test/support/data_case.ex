@@ -12,6 +12,7 @@ defmodule Trenurang.DataCase do
 
       import Ecto
       import Ecto.Query
+      import Ecto.Changeset
       import Trenurang.DataCase
     end
   end
