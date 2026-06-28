@@ -4,12 +4,26 @@ defmodule Trenurang.Fixtures do
   Ditambah incremental tiap kali kita masuk ke schema baru.
   """
 
-  alias Trenurang.Accounts.User
+  alias Trenurang.Accounts.{Actor, User}
   alias Trenurang.Repo
 
   def user_fixture(attrs \\ %{}) do
     %User{}
     |> User.changeset(attrs)
+    |> Repo.insert!()
+  end
+
+  def actor_fixture(attrs \\ %{}) do
+    {user, attrs} = Map.pop(attrs, :user)
+    user = user || user_fixture()
+
+    attrs =
+      %{type: :human, display_name: "Test Actor"}
+      |> Map.merge(attrs)
+      |> Map.put(:user_id, user.id)
+
+    %Actor{}
+    |> Actor.changeset(attrs)
     |> Repo.insert!()
   end
 end
