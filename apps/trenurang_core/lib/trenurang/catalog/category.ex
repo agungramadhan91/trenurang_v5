@@ -47,5 +47,6 @@ defmodule Trenurang.Catalog.Category do
       :required_actor_fields_for_category
     ])
     |> validate_required([:name])
+    |> foreign_key_constraint(:parent_id, message: "kategori induk tidak ditemukan")
   end
 end

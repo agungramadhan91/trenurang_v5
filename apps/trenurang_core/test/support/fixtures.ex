@@ -5,6 +5,7 @@ defmodule Trenurang.Fixtures do
   """
 
   alias Trenurang.Accounts.{Actor, User}
+  alias Trenurang.Catalog.Category
   alias Trenurang.Repo
 
   def user_fixture(attrs \\ %{}) do
@@ -24,6 +25,14 @@ defmodule Trenurang.Fixtures do
 
     %Actor{}
     |> Actor.changeset(attrs)
+    |> Repo.insert!()
+  end
+
+  def category_fixture(attrs \\ %{}) do
+    attrs = Map.merge(%{name: "Test Category"}, attrs)
+
+    %Category{}
+    |> Category.changeset(attrs)
     |> Repo.insert!()
   end
 end
