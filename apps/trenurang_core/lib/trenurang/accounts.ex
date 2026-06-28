@@ -18,7 +18,7 @@ defmodule Trenurang.Accounts do
     Repo.transaction(fn ->
       case %Actor{} |> Actor.changeset(attrs) |> Repo.insert() do
         {:ok, actor} ->
-          maybe_set_active_actor(user, actor)
+          user |> Repo.reload!() |> maybe_set_active_actor(actor)
           actor
 
         {:error, changeset} ->
