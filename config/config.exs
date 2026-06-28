@@ -9,12 +9,11 @@
 # move said applications out of the umbrella.
 import Config
 
-# Sample configuration:
-#
-#     config :logger, :default_handler,
-#       level: :info
-#
-#     config :logger, :default_formatter,
-#       format: "$date $time [$level] $metadata$message\n",
-#       metadata: [:user_id]
-#
+config :trenurang_core, ecto_repos: [Trenurang.Repo]
+
+config :trenurang_core, Trenurang.Repo,
+  username: System.get_env("DB_USERNAME", "postgres"),
+  password: System.get_env("DB_PASSWORD", "postgres"),
+  hostname: System.get_env("DB_HOSTNAME", "localhost"),
+  database: System.get_env("DB_NAME", "trenurang_dev"),
+  pool_size: 10
