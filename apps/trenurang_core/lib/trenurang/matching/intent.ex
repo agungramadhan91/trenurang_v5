@@ -44,5 +44,7 @@ defmodule Trenurang.Matching.Intent do
     ])
     |> validate_required([:direction, :source_type, :source_id, :actor_id, :category_id, :dimension_profile])
     |> validate_inclusion(:source_type, ["Profile", "Product", "Program"])
+    |> foreign_key_constraint(:actor_id, message: "actor tidak ditemukan")
+    |> foreign_key_constraint(:category_id, message: "category tidak ditemukan")
   end
 end
