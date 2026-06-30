@@ -158,4 +158,42 @@ defmodule Trenurang.Matching.IntentTest do
       assert %{category_id: ["category tidak ditemukan"]} = errors_on(changeset)
     end
   end
+
+  describe "changeset/2 - embedding_private & status quarantined" do
+    test "embedding_private default false kalau tidak diisi" do
+      actor = Fixtures.actor_fixture()
+      category = Fixtures.category_fixture()
+
+      intent =
+        %Intent{}
+        |> Intent.changeset(valid_attrs(actor, category, %{}))
+        |> Repo.insert!()
+
+      assert intent.embedding_private == false
+    end
+
+    test "embedding_private bisa di-set true" do
+      actor = Fixtures.actor_fixture()
+      category = Fixtures.category_fixture()
+
+      intent =
+        %Intent{}
+        |> Intent.changeset(valid_attrs(actor, category, %{embedding_private: true}))
+        |> Repo.insert!()
+
+      assert intent.embedding_private == true
+    end
+
+    test "status :quarantined adalah nilai valid" do
+      actor = Fixtures.actor_fixture()
+      category = Fixtures.category_fixture()
+
+      intent =
+        %Intent{}
+        |> Intent.changeset(valid_attrs(actor, category, %{status: :quarantined}))
+        |> Repo.insert!()
+
+      assert intent.status == :quarantined
+    end
+  end
 end

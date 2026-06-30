@@ -19,7 +19,8 @@ defmodule Trenurang.Matching.Intent do
     field :dimension_profile, :map, default: %{}
     field :geo_point, Geo.PostGIS.Geometry
     field :embedding, {:array, :float}
-    field :status, Ecto.Enum, values: [:active, :matched, :closed], default: :active
+    field :status, Ecto.Enum, values: [:active, :matched, :closed, :quarantined], default: :active
+    field :embedding_private, :boolean, default: false
 
     belongs_to :actor, Trenurang.Accounts.Actor
     belongs_to :category, Trenurang.Catalog.Category
@@ -40,6 +41,7 @@ defmodule Trenurang.Matching.Intent do
       :dimension_profile,
       :geo_point,
       :embedding,
+      :embedding_private,
       :status
     ])
     |> validate_required([:direction, :source_type, :source_id, :actor_id, :category_id, :dimension_profile])
