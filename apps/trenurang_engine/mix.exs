@@ -30,6 +30,10 @@ defmodule TrenurangEngine.MixProject do
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"},
       # {:sibling_app_in_umbrella, in_umbrella: true}
       {:req, "~> 0.5"},
+      {:dotenvy, "~> 1.1"},
+      {:bumblebee, "~> 0.6"},
+      {:axon, "~> 0.7"},
+      {:exla, "~> 0.9"},
       {:trenurang_core, in_umbrella: true}
     ]
   end
