@@ -34,7 +34,8 @@ defmodule TrenurangEngine.MixProject do
       {:bumblebee, "~> 0.6"},
       {:axon, "~> 0.7"},
       {:exla, "~> 0.9"},
-      {:trenurang_core, in_umbrella: true}
+      {:trenurang_core, in_umbrella: true},
+      {:plug, "~> 1.19", only: :test}
     ]
   end
 end
