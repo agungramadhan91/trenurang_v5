@@ -70,4 +70,39 @@ defmodule Trenurang.Catalog.CategoryTest do
       assert %{parent_id: ["kategori induk tidak ditemukan"]} = errors_on(changeset)
     end
   end
+
+  describe "half-life overrides (geo_half_life_km, recency_half_life_days)" do
+    test "valid kalau diisi dengan angka positif" do
+      changeset =
+        Category.changeset(%Category{}, %{
+          name: "Kuliner Lokal",
+          geo_half_life_km: 5.0,
+          recency_half_life_days: 14.0
+        })
+
+      assert changeset.valid?
+    end
+
+    test "default nil kalau tidak diisi -- bukan error, ini nil-inheritance dari parent" do
+      category = %Category{} |> Category.changeset(%{name: "Umum"}) |> Repo.insert!()
+
+      assert category.geo_half_life_km == nil
+      assert category.recency_half_life_days == nil
+    end
+
+    test "invalid kalau geo_half_life_km 0 atau negatif" do
+      changeset = Category.changeset(%Category{}, %{name: "Test", geo_half_life_km: 0})
+      refute changeset.valid?
+      assert %{geo_half_life_km: ["must be greater than 0"]} = errors_on(changeset)
+
+      changeset = Category.changeset(%Category{}, %{name: "Test", geo_half_life_km: -3.0})
+      refute changeset.valid?
+    end
+
+    test "invalid kalau recency_half_life_days 0 atau negatif" do
+      changeset = Category.changeset(%Category{}, %{name: "Test", recency_half_life_days: 0})
+      refute changeset.valid?
+      assert %{recency_half_life_days: ["must be greater than 0"]} = errors_on(changeset)
+    end
+  end
 end

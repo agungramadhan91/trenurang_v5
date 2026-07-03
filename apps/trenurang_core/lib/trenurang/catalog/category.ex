@@ -25,6 +25,8 @@ defmodule Trenurang.Catalog.Category do
     field :regulatory_domain, Ecto.Enum,
       values: [:age_restricted, :health_product, :financial_service, :employment]
     field :required_actor_fields_for_category, {:array, :string}, default: []
+    field :geo_half_life_km, :float
+    field :recency_half_life_days, :float
 
     belongs_to :parent, __MODULE__
     has_many :children, __MODULE__, foreign_key: :parent_id
@@ -44,9 +46,13 @@ defmodule Trenurang.Catalog.Category do
       :scoring_weight_overrides,
       :permitted_filter_dimensions,
       :regulatory_domain,
-      :required_actor_fields_for_category
+      :required_actor_fields_for_category,
+      :geo_half_life_km,
+      :recency_half_life_days
     ])
     |> validate_required([:name])
+    |> validate_number(:geo_half_life_km, greater_than: 0)
+    |> validate_number(:recency_half_life_days, greater_than: 0)
     |> foreign_key_constraint(:parent_id, message: "kategori induk tidak ditemukan")
   end
 end

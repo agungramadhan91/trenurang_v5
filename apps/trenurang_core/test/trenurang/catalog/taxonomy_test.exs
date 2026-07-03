@@ -94,4 +94,50 @@ defmodule Trenurang.Catalog.TaxonomyTest do
              }
     end
   end
+
+  describe "resolve_effective_half_life/1" do
+    test "category isi sendiri -- balikin nilai sendiri" do
+      category =
+        Fixtures.category_fixture(%{geo_half_life_km: 3.0, recency_half_life_days: 2.0})
+
+      assert Taxonomy.resolve_effective_half_life(category) == %{
+               geo_half_life_km: 3.0,
+               recency_half_life_days: 2.0
+             }
+    end
+
+    test "child nil -- warisin dari parent" do
+      parent =
+        Fixtures.category_fixture(%{geo_half_life_km: 15.0, recency_half_life_days: 30.0})
+
+      child = Fixtures.category_fixture(%{parent_id: parent.id})
+
+      assert Taxonomy.resolve_effective_half_life(child) == %{
+               geo_half_life_km: 15.0,
+               recency_half_life_days: 30.0
+             }
+    end
+
+    test "child override sebagian -- geo dari child, recency warisin parent" do
+      parent =
+        Fixtures.category_fixture(%{geo_half_life_km: 15.0, recency_half_life_days: 30.0})
+
+      child = Fixtures.category_fixture(%{parent_id: parent.id, geo_half_life_km: 1.5})
+
+      assert Taxonomy.resolve_effective_half_life(child) == %{
+               geo_half_life_km: 1.5,
+               recency_half_life_days: 30.0
+             }
+    end
+
+    test "seluruh chain nil -- fallback ke default platform" do
+      root = Fixtures.category_fixture(%{})
+      leaf = Fixtures.category_fixture(%{parent_id: root.id})
+
+      assert Taxonomy.resolve_effective_half_life(leaf) == %{
+               geo_half_life_km: 10.0,
+               recency_half_life_days: 7.0
+             }
+    end
+  end
 end

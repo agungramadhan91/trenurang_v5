@@ -29,6 +29,31 @@ defmodule Trenurang.Catalog.Taxonomy do
     end)
   end
 
+  # Default platform kalau seluruh ancestor chain tidak mengisi override.
+  # Nilai ini BUKAN keputusan final bisnis -- cuma starting point aman,
+  # bisa direvisit per kategori lewat geo_half_life_km/recency_half_life_days.
+  @default_geo_half_life_km 10.0
+  @default_recency_half_life_days 7.0
+
+  @spec resolve_effective_half_life(Category.t()) :: %{
+          geo_half_life_km: float(),
+          recency_half_life_days: float()
+        }
+  def resolve_effective_half_life(%Category{} = category) do
+    chain = ancestor_chain(category)
+
+    %{
+      geo_half_life_km:
+        find_first_non_nil(chain, & &1.geo_half_life_km) || @default_geo_half_life_km,
+      recency_half_life_days:
+        find_first_non_nil(chain, & &1.recency_half_life_days) || @default_recency_half_life_days
+    }
+  end
+
+  defp find_first_non_nil(chain, field_fn) do
+    Enum.find_value(chain, fn cat -> field_fn.(cat) end)
+  end
+
   defp ancestor_chain(%Category{parent_id: nil} = category), do: [category]
 
   defp ancestor_chain(%Category{} = category) do
