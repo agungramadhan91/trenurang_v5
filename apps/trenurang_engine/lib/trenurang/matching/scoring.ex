@@ -64,6 +64,45 @@ defmodule Trenurang.Matching.Scoring do
     end
   end
 
+  @earth_radius_km 6371.0
+
+  @doc """
+  Half-life decay berbasis jarak Haversine antar dua titik {lng, lat}.
+  score = 0.5^(distance_km / half_life_km) -- di jarak = half_life_km, score = 0.5.
+
+  CATATAN: fungsi ini TIDAK mengecek spatiality. Kalau Intent bersifat :remote
+  (skip_geo_filter? dari Router.pipeline_modifiers/1), caller (context Matching,
+  fase berikutnya) yang bertanggung jawab tidak memanggil fungsi ini sama sekali
+  dan pakai netral 0.5 langsung -- bukan tanggung jawab Scoring.geo_proximity/3
+  untuk tahu soal itu.
+  """
+  @spec geo_proximity({number(), number()}, {number(), number()}, number()) :: float()
+  def geo_proximity(_point_a, _point_b, half_life_km) when half_life_km <= 0 do
+    raise ArgumentError, "half_life_km harus > 0, dapat #{half_life_km}"
+  end
+
+  def geo_proximity({lng_a, lat_a}, {lng_b, lat_b}, half_life_km) do
+    distance_km = haversine_km(lng_a, lat_a, lng_b, lat_b)
+    :math.pow(0.5, distance_km / half_life_km)
+  end
+
+  defp haversine_km(lng_a, lat_a, lng_b, lat_b) do
+    lat_a_rad = deg_to_rad(lat_a)
+    lat_b_rad = deg_to_rad(lat_b)
+    delta_lat = deg_to_rad(lat_b - lat_a)
+    delta_lng = deg_to_rad(lng_b - lng_a)
+
+    a =
+      :math.pow(:math.sin(delta_lat / 2), 2) +
+        :math.cos(lat_a_rad) * :math.cos(lat_b_rad) * :math.pow(:math.sin(delta_lng / 2), 2)
+
+    c = 2 * :math.asin(:math.sqrt(a))
+
+    @earth_radius_km * c
+  end
+
+  defp deg_to_rad(deg), do: deg * :math.pi() / 180
+
   defp dot_product(a, b) do
     Enum.zip(a, b)
     |> Enum.reduce(0.0, fn {x, y}, acc -> acc + x * y end)

@@ -119,4 +119,51 @@ defmodule Trenurang.Matching.ScoringTest do
       assert Scoring.semantic_similarity([0.0, 0.0], [1.0, 2.0]) == 0.5
     end
   end
+
+  describe "geo_proximity/3" do
+    test "titik sama -> distance 0 -> score 1.0, apapun half_life" do
+      point = {106.8, -6.2}
+      assert_in_delta Scoring.geo_proximity(point, point, 10.0), 1.0, 0.0001
+    end
+
+    test "jarak sama dengan half_life_km -> score 0.5" do
+      # 1 derajat latitude di ekuator ~ 111.19 km (radius bumi 6371km * pi/180)
+      point_a = {0.0, 0.0}
+      point_b = {0.0, 1.0}
+      half_life_km = 111.19
+
+      assert_in_delta Scoring.geo_proximity(point_a, point_b, half_life_km), 0.5, 0.01
+    end
+
+    test "jarak 2x half_life -> score 0.25 (0.5^2)" do
+      point_a = {0.0, 0.0}
+      point_b = {0.0, 1.0}
+      # jarak ~111.19km, half_life setengahnya -> distance/half_life = 2
+      half_life_km = 111.19 / 2
+
+      assert_in_delta Scoring.geo_proximity(point_a, point_b, half_life_km), 0.25, 0.01
+    end
+
+    test "jarak jauh (quarter keliling bumi di ekuator, ~10007km) -> score mendekati 0" do
+      point_a = {0.0, 0.0}
+      point_b = {90.0, 0.0}
+      half_life_km = 10.0
+
+      score = Scoring.geo_proximity(point_a, point_b, half_life_km)
+      assert score < 0.0001
+      assert score > 0.0
+    end
+
+    test "half_life_km <= 0 -> raise ArgumentError" do
+      point = {0.0, 0.0}
+
+      assert_raise ArgumentError, fn ->
+        Scoring.geo_proximity(point, point, 0)
+      end
+
+      assert_raise ArgumentError, fn ->
+        Scoring.geo_proximity(point, point, -5.0)
+      end
+    end
+  end
 end
