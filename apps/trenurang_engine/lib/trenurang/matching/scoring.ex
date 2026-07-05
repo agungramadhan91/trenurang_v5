@@ -113,6 +113,60 @@ defmodule Trenurang.Matching.Scoring do
   @spec actor_signal() :: float()
   def actor_signal, do: 1.0
 
+  @default_weights %{
+    dimension_match: 0.30,
+    semantic_similarity: 0.30,
+    geo_proximity: 0.20,
+    recency: 0.10,
+    actor_signal: 0.10
+  }
+
+  @doc """
+  Titik integrasi 5 signal jadi weighted sum + breakdown map.
+
+  signal_inputs (map, semua key wajib ada):
+    - embedding_a, embedding_b :: [float()] | nil
+    - point_a, point_b :: {lng, lat} | nil          -- nil kalau spatiality == :remote
+    - half_life_km, half_life_days :: number()
+    - time_a, time_b :: DateTime.t()
+    - skip_geo? :: boolean()                         -- dari Router.pipeline_modifiers/1
+
+  weights: map partial, di-merge ke atas @default_weights (caller yang resolve
+  Category.scoring_weight_overrides via Taxonomy.resolve_effective_weights/1
+  SEBELUM masuk sini -- Scoring tidak query Category sendiri).
+
+  Return: %{total: float(), breakdown: %{signal_name => float()}}
+  """
+  @spec score_breakdown(DimensionProfile.t(), DimensionProfile.t(), map(), map()) :: %{
+          total: float(),
+          breakdown: map()
+        }
+  def score_breakdown(%DimensionProfile{} = profile_a, %DimensionProfile{} = profile_b, signal_inputs, weights \\ %{}) do
+    w = Map.merge(@default_weights, weights)
+
+    geo_score =
+      if signal_inputs.skip_geo? do
+        0.5
+      else
+        geo_proximity(signal_inputs.point_a, signal_inputs.point_b, signal_inputs.half_life_km)
+      end
+
+    breakdown = %{
+      dimension_match: dimension_match(profile_a, profile_b),
+      semantic_similarity: semantic_similarity(signal_inputs.embedding_a, signal_inputs.embedding_b),
+      geo_proximity: geo_score,
+      recency: recency(signal_inputs.time_a, signal_inputs.time_b, signal_inputs.half_life_days),
+      actor_signal: actor_signal()
+    }
+
+    total =
+      Enum.reduce(breakdown, 0.0, fn {signal, score}, acc ->
+        acc + score * Map.fetch!(w, signal)
+      end)
+
+    %{total: total, breakdown: breakdown}
+  end
+
   defp haversine_km(lng_a, lat_a, lng_b, lat_b) do
     lat_a_rad = deg_to_rad(lat_a)
     lat_b_rad = deg_to_rad(lat_b)

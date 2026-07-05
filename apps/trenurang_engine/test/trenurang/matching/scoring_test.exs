@@ -215,4 +215,84 @@ defmodule Trenurang.Matching.ScoringTest do
       assert Scoring.actor_signal() == 1.0
     end
   end
+
+  describe "score_breakdown/4" do
+    defp base_signal_inputs do
+      %{
+        embedding_a: [1.0, 0.0],
+        embedding_b: [1.0, 0.0],
+        point_a: {0.0, 0.0},
+        point_b: {0.0, 0.0},
+        half_life_km: 10.0,
+        half_life_days: 7.0,
+        time_a: ~U[2026-07-05 00:00:00Z],
+        time_b: ~U[2026-07-05 00:00:00Z],
+        skip_geo?: false
+      }
+    end
+
+    test "profile identik + signal identik -> total 1.0, semua breakdown 1.0" do
+      p = profile(%{})
+      result = Scoring.score_breakdown(p, p, base_signal_inputs())
+
+      assert_in_delta result.total, 1.0, 0.0001
+      assert_in_delta result.breakdown.dimension_match, 1.0, 0.0001
+      assert_in_delta result.breakdown.semantic_similarity, 1.0, 0.0001
+      assert_in_delta result.breakdown.geo_proximity, 1.0, 0.0001
+      assert_in_delta result.breakdown.recency, 1.0, 0.0001
+      assert result.breakdown.actor_signal == 1.0
+    end
+
+    test "skip_geo? true -> geo_proximity netral 0.5, tidak panggil Haversine" do
+      p = profile(%{})
+      inputs = %{base_signal_inputs() | skip_geo?: true, point_a: nil, point_b: nil}
+
+      result = Scoring.score_breakdown(p, p, inputs)
+
+      assert result.breakdown.geo_proximity == 0.5
+    end
+
+    test "embedding nil (privacy mode / provider gagal) -> semantic_similarity netral 0.5" do
+      p = profile(%{})
+      inputs = %{base_signal_inputs() | embedding_a: nil, embedding_b: nil}
+
+      result = Scoring.score_breakdown(p, p, inputs)
+
+      assert result.breakdown.semantic_similarity == 0.5
+    end
+
+    test "weight override per Category -- total berubah sesuai bobot baru" do
+      p = profile(%{})
+      inputs = base_signal_inputs()
+
+      default_result = Scoring.score_breakdown(p, p, inputs)
+      override_result = Scoring.score_breakdown(p, p, inputs, %{dimension_match: 1.0, semantic_similarity: 0.0, geo_proximity: 0.0, recency: 0.0, actor_signal: 0.0})
+
+      assert_in_delta default_result.total, 1.0, 0.0001
+      assert_in_delta override_result.total, 1.0, 0.0001
+    end
+
+    test "semua signal berbeda total -> total adalah weighted sum yang benar" do
+      a = profile(%{urgency: :normal})
+      b = profile(%{urgency: :emergency})
+      inputs = %{base_signal_inputs() | embedding_a: [1.0, 0.0], embedding_b: [0.0, 1.0]}
+
+      result = Scoring.score_breakdown(a, b, inputs)
+
+      expected_dimension_match = 8 / 9
+      expected_semantic = 0.0
+      expected_geo = 1.0
+      expected_recency = 1.0
+      expected_actor = 1.0
+
+      expected_total =
+        expected_dimension_match * 0.30 +
+          expected_semantic * 0.30 +
+          expected_geo * 0.20 +
+          expected_recency * 0.10 +
+          expected_actor * 0.10
+
+      assert_in_delta result.total, expected_total, 0.0001
+    end
+  end
 end
