@@ -104,6 +104,15 @@ defmodule Trenurang.Matching.Scoring do
     :math.pow(0.5, diff_days / half_life_days)
   end
 
+  @doc """
+  Placeholder actor_signal untuk MVP -- konstan 1.0, TIDAK ADA boost dulu
+  (Decision Log #20). Pluggable untuk monetisasi nanti (misal Actor terverifikasi
+  dapat boost) tanpa mengubah struktur score_breakdown -- cukup ganti isi
+  fungsi ini, signature & pemanggil di score_breakdown/4 tidak perlu berubah.
+  """
+  @spec actor_signal() :: float()
+  def actor_signal, do: 1.0
+
   defp haversine_km(lng_a, lat_a, lng_b, lat_b) do
     lat_a_rad = deg_to_rad(lat_a)
     lat_b_rad = deg_to_rad(lat_b)

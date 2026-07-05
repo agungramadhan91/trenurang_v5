@@ -209,4 +209,10 @@ defmodule Trenurang.Matching.ScoringTest do
       end
     end
   end
+
+  describe "actor_signal/0" do
+    test "placeholder konstan 1.0 (Decision Log #20)" do
+      assert Scoring.actor_signal() == 1.0
+    end
+  end
 end
