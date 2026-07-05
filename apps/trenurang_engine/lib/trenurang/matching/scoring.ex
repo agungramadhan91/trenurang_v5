@@ -86,6 +86,24 @@ defmodule Trenurang.Matching.Scoring do
     :math.pow(0.5, distance_km / half_life_km)
   end
 
+  @doc """
+  Half-life decay berbasis selisih waktu (recency) antar dua Intent.
+  score = 0.5^(days_diff / half_life_days) -- di selisih = half_life_days, score = 0.5.
+  Selisih dihitung absolut -- Intent lebih baru atau lebih lama dari pembanding
+  diperlakukan sama (recency bukan soal urutan, cuma soal jarak waktu).
+  """
+  @spec recency(DateTime.t(), DateTime.t(), number()) :: float()
+  def recency(_time_a, _time_b, half_life_days) when half_life_days <= 0 do
+    raise ArgumentError, "half_life_days harus > 0, dapat #{half_life_days}"
+  end
+
+  def recency(%DateTime{} = time_a, %DateTime{} = time_b, half_life_days) do
+    diff_seconds = DateTime.diff(time_a, time_b, :second) |> abs()
+    diff_days = diff_seconds / 86_400
+
+    :math.pow(0.5, diff_days / half_life_days)
+  end
+
   defp haversine_km(lng_a, lat_a, lng_b, lat_b) do
     lat_a_rad = deg_to_rad(lat_a)
     lat_b_rad = deg_to_rad(lat_b)

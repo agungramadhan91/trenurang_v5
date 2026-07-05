@@ -166,4 +166,47 @@ defmodule Trenurang.Matching.ScoringTest do
       end
     end
   end
+
+  describe "recency/3" do
+    test "waktu sama -> score 1.0" do
+      now = DateTime.utc_now()
+      assert_in_delta Scoring.recency(now, now, 7.0), 1.0, 0.0001
+    end
+
+    test "selisih sama dengan half_life_days -> score 0.5" do
+      time_a = ~U[2026-07-05 00:00:00Z]
+      time_b = ~U[2026-07-12 00:00:00Z]
+
+      assert_in_delta Scoring.recency(time_a, time_b, 7.0), 0.5, 0.0001
+    end
+
+    test "urutan argumen tidak masalah -- selisih dihitung absolut" do
+      time_a = ~U[2026-07-05 00:00:00Z]
+      time_b = ~U[2026-07-12 00:00:00Z]
+
+      score_forward = Scoring.recency(time_a, time_b, 7.0)
+      score_backward = Scoring.recency(time_b, time_a, 7.0)
+
+      assert_in_delta score_forward, score_backward, 0.0001
+    end
+
+    test "selisih 2x half_life -> score 0.25" do
+      time_a = ~U[2026-07-05 00:00:00Z]
+      time_b = ~U[2026-07-19 00:00:00Z]
+
+      assert_in_delta Scoring.recency(time_a, time_b, 7.0), 0.25, 0.0001
+    end
+
+    test "half_life_days <= 0 -> raise ArgumentError" do
+      now = DateTime.utc_now()
+
+      assert_raise ArgumentError, fn ->
+        Scoring.recency(now, now, 0)
+      end
+
+      assert_raise ArgumentError, fn ->
+        Scoring.recency(now, now, -3.0)
+      end
+    end
+  end
 end
