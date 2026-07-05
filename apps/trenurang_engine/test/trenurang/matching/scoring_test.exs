@@ -78,4 +78,45 @@ defmodule Trenurang.Matching.ScoringTest do
       assert_in_delta Scoring.dimension_match(a, b), 8.5 / 9, 0.0001
     end
   end
+
+  describe "semantic_similarity/2" do
+    test "embedding_a nil -> netral 0.5" do
+      assert Scoring.semantic_similarity(nil, [1.0, 0.0]) == 0.5
+    end
+
+    test "embedding_b nil -> netral 0.5" do
+      assert Scoring.semantic_similarity([1.0, 0.0], nil) == 0.5
+    end
+
+    test "keduanya nil -> netral 0.5" do
+      assert Scoring.semantic_similarity(nil, nil) == 0.5
+    end
+
+    test "vector identik -> 1.0" do
+      v = [1.0, 2.0, 3.0]
+      assert_in_delta Scoring.semantic_similarity(v, v), 1.0, 0.0001
+    end
+
+    test "vector berlawanan arah -> -1.0" do
+      a = [1.0, 0.0]
+      b = [-1.0, 0.0]
+      assert_in_delta Scoring.semantic_similarity(a, b), -1.0, 0.0001
+    end
+
+    test "vector orthogonal -> 0.0" do
+      a = [1.0, 0.0]
+      b = [0.0, 1.0]
+      assert_in_delta Scoring.semantic_similarity(a, b), 0.0, 0.0001
+    end
+
+    test "panjang vector beda -> raise ArgumentError" do
+      assert_raise ArgumentError, fn ->
+        Scoring.semantic_similarity([1.0, 2.0], [1.0])
+      end
+    end
+
+    test "salah satu vector nol semua -> netral 0.5, bukan crash" do
+      assert Scoring.semantic_similarity([0.0, 0.0], [1.0, 2.0]) == 0.5
+    end
+  end
 end
